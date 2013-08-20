@@ -413,28 +413,43 @@ if(NOT NO_JAVAC)
   # Ant is used to build the graphlab JVM interface
   find_package(Ant)
 
+ 
+  if (JNI_REALLY_FOUND)
+    message(STATUS "Building hadoop 2.0.x libhdfs-0")
+    ExternalProject_Add(hadoop2
+      PREFIX ${GraphLab_SOURCE_DIR}/deps/hadoop2
+      URL http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-2.0.5-alpha/hadoop-2.0.5-alpha-src.tar.gz
+      URL_MD5 7cdc94c611f42af1646bcafd43430f58
+      CONFIGURE_COMMAND echo "no configure"
+      BUILD_IN_SOURCE 1
+      BUILD_COMMAND mvn -DskipTests install -P native
+      INSTALL_DIR ${GraphLab_SOURCE_DIR}/deps/local
+      INSTALL_COMMAND echo "no install"
+      TEST_COMMAND bash -c "mkdir -p <INSTALL_DIR>/include && cp -f <SOURCE_DIR>/hadoop-hdfs-project/hadoop-hdfs/src/main/native/libhdfs/hdfs.h <INSTALL_DIR>/include && mkdir -p <INSTALL_DIR>/lib && cp -f <SOURCE_DIR>/hadoop-hdfs-project/hadoop-hdfs/target/native/target/usr/local/lib/libhdfs.* <INSTALL_DIR>/lib")
+    set(HADOOP2_FOUND 1 CACHE BOOL "Hadoop 2.0 was found")
+    add_definitions(-DHAS_HADOOP2)
+  endif (JNI_REALLY_FOUND)
+
   # LibHDFS =====================================================================
   # If JNI is found we install libhdfs which allows programs to read and write
   # to hdfs filesystems
-  if( JNI_REALLY_FOUND )
-    message(STATUS "Building libhdfs")
-    ExternalProject_Add(hadoop
-      PREFIX ${GraphLab_SOURCE_DIR}/deps/hadoop
-      URL http://graphlab.org/deps/hadoop-1.0.1.tar.gz
+  # if( JNI_REALLY_FOUND )
+  #  message(STATUS "Building libhdfs")
+  #  ExternalProject_Add(hadoop
+  #    PREFIX ${GraphLab_SOURCE_DIR}/deps/hadoop
+  #    URL http://graphlab.org/deps/hadoop-1.0.1.tar.gz
 #      URL http://www.gtlib.gatech.edu/pub/apache/hadoop/common/hadoop-1.0.1/hadoop-1.0.1.tar.gz
-      URL_MD5 e627d9b688c4de03cba8313bd0bba148
-      UPDATE_COMMAND chmod +x <SOURCE_DIR>/src/c++/libhdfs/install-sh <SOURCE_DIR>/src/c++/libhdfs/configure
-      PATCH_COMMAND patch -N -p1 -i ${GraphLab_SOURCE_DIR}/patches/libhdfs.patch || true
-      BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND <SOURCE_DIR>/src/c++/libhdfs/configure JVM_ARCH=tune=generic --prefix=<INSTALL_DIR> --with-java=${JAVA_HOME} --enable-shared=no --enable-static=yes
-      INSTALL_DIR ${GraphLab_SOURCE_DIR}/deps/local
-      TEST_COMMAND bash -c "mkdir -p <INSTALL_DIR>/include && cp <SOURCE_DIR>/src/c++/libhdfs/hdfs.h <INSTALL_DIR>/include")
-    set(HADOOP_FOUND 1 CACHE BOOL "Hadoop was found")
-    add_definitions(-DHAS_HADOOP)
-    # link_libraries(hdfs ${JAVA_JVM_LIBRARY})
-  endif( JNI_REALLY_FOUND )
-
-
+  #    URL_MD5 e627d9b688c4de03cba8313bd0bba148
+  #    UPDATE_COMMAND chmod +x <SOURCE_DIR>/src/c++/libhdfs/install-sh <SOURCE_DIR>/src/c++/libhdfs/configure
+  #    PATCH_COMMAND patch -N -p1 -i ${GraphLab_SOURCE_DIR}/patches/libhdfs.patch || true
+  #    BUILD_IN_SOURCE 1
+  #    CONFIGURE_COMMAND <SOURCE_DIR>/src/c++/libhdfs/configure JVM_ARCH=tune=generic --prefix=<INSTALL_DIR> --with-java=${JAVA_HOME} --enable-shared=no --enable-static=yes
+  #    INSTALL_DIR ${GraphLab_SOURCE_DIR}/deps/local
+  #    TEST_COMMAND bash -c "mkdir -p <INSTALL_DIR>/include && cp <SOURCE_DIR>/src/c++/libhdfs/hdfs.h <INSTALL_DIR>/include")
+  #  set(HADOOP_FOUND 1 CACHE BOOL "Hadoop was found")
+  #  add_definitions(-DHAS_HADOOP)
+# link_libraries(hdfs ${JAVA_JVM_LIBRARY})
+  # endif( JNI_REALLY_FOUND )
 
 endif()
 
@@ -491,10 +506,14 @@ macro(requires_core_deps NAME)
   if(MPI_FOUND)
     target_link_libraries(${NAME} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
   endif(MPI_FOUND)
-  if(HADOOP_FOUND)
+  #if(HADOOP_FOUND)
+  # target_link_libraries(${NAME} hdfs ${JAVA_JVM_LIBRARY})
+  # add_dependencies(${NAME} hadoop)
+  #endif(HADOOP_FOUND)
+  if(HADOOP2_FOUND)
     target_link_libraries(${NAME} hdfs ${JAVA_JVM_LIBRARY})
-    add_dependencies(${NAME} hadoop)
-  endif(HADOOP_FOUND)
+  add_dependencies(${NAME} hadoop2)
+  endif(HADOOP2_FOUND)
 endmacro(requires_core_deps)
 
 
