@@ -415,7 +415,7 @@ if(NOT NO_JAVAC)
 
  
   if (JNI_REALLY_FOUND)
-    message(STATUS "Building hadoop 2.0.x libhdfs-0")
+    message(STATUS "Building hadoop 2.0.x libhdfs")
     ExternalProject_Add(hadoop2
       PREFIX ${GraphLab_SOURCE_DIR}/deps/hadoop2
       URL http://mirror.olnevhost.net/pub/apache/hadoop/common/hadoop-2.0.5-alpha/hadoop-2.0.5-alpha-src.tar.gz
@@ -426,8 +426,8 @@ if(NOT NO_JAVAC)
       INSTALL_DIR ${GraphLab_SOURCE_DIR}/deps/local
       INSTALL_COMMAND echo "no install"
       TEST_COMMAND bash -c "mkdir -p <INSTALL_DIR>/include && cp -f <SOURCE_DIR>/hadoop-hdfs-project/hadoop-hdfs/src/main/native/libhdfs/hdfs.h <INSTALL_DIR>/include && mkdir -p <INSTALL_DIR>/lib && cp -f <SOURCE_DIR>/hadoop-hdfs-project/hadoop-hdfs/target/native/target/usr/local/lib/libhdfs.* <INSTALL_DIR>/lib")
-    set(HADOOP2_FOUND 1 CACHE BOOL "Hadoop 2.0 was found")
-    add_definitions(-DHAS_HADOOP2)
+    set(HADOOP_FOUND 1 CACHE BOOL "Hadoop 2.0 was found")
+    add_definitions(-DHAS_HADOOP)
   endif (JNI_REALLY_FOUND)
 
   # LibHDFS =====================================================================
@@ -510,10 +510,10 @@ macro(requires_core_deps NAME)
   # target_link_libraries(${NAME} hdfs ${JAVA_JVM_LIBRARY})
   # add_dependencies(${NAME} hadoop)
   #endif(HADOOP_FOUND)
-  if(HADOOP2_FOUND)
+  if(HADOOP_FOUND)
     target_link_libraries(${NAME} hdfs ${JAVA_JVM_LIBRARY})
   add_dependencies(${NAME} hadoop2)
-  endif(HADOOP2_FOUND)
+  endif(HADOOP_FOUND)
 endmacro(requires_core_deps)
 
 

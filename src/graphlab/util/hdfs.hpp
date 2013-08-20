@@ -76,7 +76,7 @@ namespace graphlab {
 
       void close(std::ios_base::openmode mode = std::ios_base::openmode() ) { 
         if(file == NULL) return;
-        if(file->type == OUTPUT) {
+        if(hdfsFileIsOpenForWrite(file)) {
           const int flush_error = hdfsFlush(filesystem, file);
           ASSERT_EQ(flush_error, 0);
         }
